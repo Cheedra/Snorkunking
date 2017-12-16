@@ -22,8 +22,8 @@ import javafx.stage.Stage;
 
 public class FX extends Application{
     
-	static int playerNum = 2, cave0Num = 3, cave1Num = 3, cave2Num = 3;
-    int turn = playerNum - 1;
+	static int playerNum = 4, cave0Num = 12, cave1Num = 6, cave2Num = 3;
+    int turn = 0 ;
     static int chestNum = cave0Num + cave1Num + cave2Num;
 	
     private Stage stage;
@@ -67,11 +67,11 @@ public class FX extends Application{
 		diver.setPadding(new Insets(0,80,0,0));
 	    playersList[i]=diver;
 	  }
-	  setDiverList();    
+	  setDiverList();
+	  //setPlaying(playersList, diversList, turn);
 	  players.getChildren().addAll(playersList);
 	  players.setPadding(new Insets(0,0,0,160));
 
-    
     //Set chests
     
     VBox chests = new VBox();
@@ -179,12 +179,10 @@ public class FX extends Application{
     Scene scene = new Scene(root, 700, height);
     
     //Key bindings
-    
+    setPlaying(playersList, diversList, diversList.get(turn));
     scene.setOnKeyPressed(ke -> {
     	//MOVE DOWN
         if(ke.getCode() == KeyCode.DOWN){
-        	//Get turn
-        	sortList();
         	//Set variables
         	Diver currentDiver = diversList.get(turn);
         	int id = currentDiver.getId();
@@ -218,18 +216,9 @@ public class FX extends Application{
         		removeOxygenMove(currentDiver, ox, bar);
         		//Check oxygen reserve
         		if (ox.isEmpty()){        		
-        			//reset players        			
-        			currentDiver.resetPos(playersList);
-        			for(int i = 0; i < diversList.size(); i++) {
-        				diversList.get(i).setDepth(-1);
-        				diversList.get(i).setStash(0);
-        			}
-        			turn = playerNum - 1;        			
-        			//reset oxygen        			
-        			resetOxygen(ox, bar, oxygen);        			
-        			//reset chests        			
-        			resetChests(chestsBoxList, chestsList);
+        			resetAll(currentDiver, playersList, ox, bar, oxygen, chestsBoxList);
         		}
+        		
         	//CASE 2 : BOTTOM
         	}else if(currentDiver.getDepth() == chestNum - 1) {
         		//Do nothing
@@ -251,29 +240,21 @@ public class FX extends Application{
         		removeOxygenMove(currentDiver, ox, bar);
         		//Check oxygen reserves
         		if (ox.isEmpty()){        		
-        			//reset players        			
-        			currentDiver.resetPos(playersList);
-        			for(int i = 0; i < diversList.size(); i++) {
-        				diversList.get(i).setDepth(-1);
-        			}
-        			turn = playerNum - 1;        			
-        			//reset oxygen        			
-        			resetOxygen(ox, bar, oxygen);        			
-        			//reset chests        			
-        			resetChests(chestsBoxList, chestsList);
+        			resetAll(currentDiver, playersList, ox, bar, oxygen, chestsBoxList);
         		}
         	}
+        	//Set current player image
+        	setCurrentPlaying(playersList);
         	System.out.println("Player "+(id+1));
         	System.out.println("Action: Move Down");
         	System.out.println("Initial depth: "+initialDepth+" / Final depth: "+currentDiver.getDepth()+" / Disance: "+(currentDiver.getDepth() - initialDepth));
         	System.out.println("Treasures: "+currentDiver.getTreasures()+" / Chests: "+currentDiver.getStash());
         	System.out.println("Oxygen consumed: " + (initialOxygen - ox.getLevel()) + " / Current Oxygen: "+ox.getLevel());
         	System.out.println("------------------------------------------------------------------------------------------");
+        	
         }
         //MOVE UP
         if(ke.getCode() == KeyCode.UP) {
-        	//Get turn
-        	sortList();
         	//Set variables
         	Diver currentDiver = diversList.get(turn);
         	int id = currentDiver.getId(); 
@@ -298,16 +279,7 @@ public class FX extends Application{
         		removeOxygenMove(currentDiver, ox, bar);
         		//Check oxygen reserves
         		if (ox.isEmpty()){        		
-        			//reset players        			
-        			currentDiver.resetPos(playersList);
-        			for(int i = 0; i < diversList.size(); i++) {
-        				diversList.get(i).setDepth(-1);
-        			}
-        			turn = playerNum - 1;        			
-        			//reset oxygen        			
-        			resetOxygen(ox, bar, oxygen);        			
-        			//reset chests        			
-        			resetChests(chestsBoxList, chestsList);
+        			resetAll(currentDiver, playersList, ox, bar, oxygen, chestsBoxList);
         		}
         		//Open stash
         		setStash(currentDiver, currentStash, stashesBoxList);        		
@@ -336,18 +308,11 @@ public class FX extends Application{
         		removeOxygenMove(currentDiver, ox, bar);
         		//Check oxygen reserves
         		if (ox.isEmpty()){        		
-        			//reset players        			
-        			currentDiver.resetPos(playersList);
-        			for(int i = 0; i < diversList.size(); i++) {
-        				diversList.get(i).setDepth(-1);
-        			}
-        			turn = playerNum - 1;        			
-        			//reset oxygen        			
-        			resetOxygen(ox, bar, oxygen);        			
-        			//reset chests        			
-        			resetChests(chestsBoxList, chestsList);
+        			resetAll(currentDiver, playersList, ox, bar, oxygen, chestsBoxList);
         		}
         	}
+        	//Set current player image
+        	setCurrentPlaying(playersList);
         	System.out.println("Player "+(id+1));
         	System.out.println("Action: Move Up");
         	System.out.println("Initial depth: "+initialDepth+" / Final depth: "+currentDiver.getDepth()+" / Disance: "+(initialDepth - currentDiver.getDepth()));
@@ -357,8 +322,6 @@ public class FX extends Application{
         }
         //OPEN CHEST
         if((ke.getCode() == KeyCode.LEFT) || (ke.getCode() == KeyCode.RIGHT)) {
-        	//Get turn
-        	sortList();
         	//Set variables
         	Diver currentDiver = diversList.get(turn);
         	int depth = currentDiver.getDepth();
@@ -383,17 +346,8 @@ public class FX extends Application{
         			//Remove oxygen
         			removeOxygenChest(ox, bar);
         			//Check oxygen reserves
-        			if (ox.isEmpty()){        		
-            			//reset players			
-            			currentDiver.resetPos(playersList);
-            			for(int i = 0; i < diversList.size(); i++) {
-            				diversList.get(i).setDepth(-1);
-            			}
-            			turn = playerNum - 1;        			
-            			//reset oxygen        			
-            			resetOxygen(ox, bar, oxygen);        			
-            			//reset chests        			
-            			resetChests(chestsBoxList, chestsList);
+        			if (ox.isEmpty()){
+        				resetAll(currentDiver, playersList, ox, bar, oxygen, chestsBoxList);
             		}
         		//If chest is open
         		}else {
@@ -401,6 +355,8 @@ public class FX extends Application{
         			turn--;
         		}
         	}
+        	//Set current player image
+        	setCurrentPlaying(playersList);
         	System.out.println("Player "+(currentDiver.getId()+1));
         	System.out.println("Action: Open Chest");
         	System.out.println("Depth: "+depth);
@@ -434,11 +390,47 @@ public class FX extends Application{
 	  }
   }
   
+  public void setCurrentPlaying(HBox[] playersList) {
+	  if(turn < playerNum -1) {
+  		setPlaying(playersList, diversList, diversList.get(turn+1));
+  		turn++;
+  	}
+  	else{
+  		turn=0;
+			sortList();
+			setPlaying(playersList, diversList, diversList.get(turn));
+  	}
+  }
+  
+  public void setPlaying(HBox[] list, ArrayList<Diver> d, Diver D) {
+	  for(int i = 0; i < list.length; i++) {
+		  Image img = new Image(this.getClass().getResourceAsStream("/images/diver"+i+".png"));
+			ImageView iv = new ImageView(img);
+			iv.setFitHeight(playerHeight);
+			iv.setPreserveRatio(true);
+			HBox diver = new HBox();
+			diver.getChildren().clear();
+			diver.getChildren().add(iv);
+			list[i].getChildren().clear();
+			list[i].getChildren().add(diver);
+	  }
+		int id = D.getId();
+		Image img = new Image(this.getClass().getResourceAsStream("/images/diver"+id+"_selected.png"));
+		ImageView iv = new ImageView(img);
+		iv.setFitHeight(playerHeight);
+		iv.setPreserveRatio(true);
+		list[id].getChildren().clear();
+		HBox diver = new HBox();
+		diver.getChildren().clear();
+		diver.getChildren().add(iv);
+		//diver.setPadding(new Insets(0,80,0,0));
+		list[id].getChildren().add(diver);
+	}
+  
   public void sortList() {
-	  if (turn == playerNum -1){
-		  turn = 0;
-		  
-		  Collections.sort(diversList,new Comparator<Diver>(){
+	  //if (turn == playerNum -1){
+		  //turn = 0;
+		  Collections.sort(diversList, new Comparator<Diver>(){
 			   @Override
 			   public int compare(Diver d1,Diver d2) {
 				   if (d2.getDepth() > d1.getDepth() ){
@@ -453,12 +445,7 @@ public class FX extends Application{
 			     }
 			 }); 
 	  }
-	  else {
-		  turn++;
-	  }
-		  
-  }
-  
+
   public void setChestList() {
 	  for(int i = 0; i < chestNum; i++) {
 		  int t0 = ThreadLocalRandom.current().nextInt(1, 4);
@@ -521,7 +508,7 @@ public class FX extends Application{
   
   //Actions
   
-  public static void openChest(Chest c, Diver d, VBox[] l, Rectangle r, Oxygen o) {
+  public void openChest(Chest c, Diver d, VBox[] l, Rectangle r, Oxygen o) {
 	  c.setClosed(false);
 	  c.openChest(l, d.getDepth());
 		//set treasures
@@ -563,14 +550,14 @@ public class FX extends Application{
 	  return distance;
   }
   
-  public static int getDistanceUp(Diver d, ArrayList<Chest> c) {//tofix
+  public static int getDistanceUp(Diver d, ArrayList<Chest> c) {
 	  int distance = 1, i = d.getDepth();
 	  while((c.get(i-1).isHidden()) && (i > 1)) {
 		  i--;
 		  distance++;
-		  if((i == 2) && (d.getDepth() == 0)) {
-			  distance ++;
-		  }
+	  }
+	  if(d.getDepth() == distance) {
+		  distance++;
 	  }
 	  return distance;
   }
@@ -607,8 +594,25 @@ public class FX extends Application{
   }
   
   //Reset scene
+
+  public void resetAll(Diver currentDiver, HBox[] playersList, Oxygen ox, Rectangle bar, HBox oxygen, VBox[] chestsBoxList) {
+	//reset players	
+		resetPlayers(currentDiver, playersList);    			
+		//reset oxygen        			
+		resetOxygen(ox, bar, oxygen);        			
+		//reset chests        			
+		resetChests(chestsBoxList, chestsList);
+  }
   
-  //DO resetPlayers(); missing d.setStash(0);d.setTreasures(0);
+  public void resetPlayers(Diver currentDiver, HBox[] playersList) {
+	  currentDiver.resetPos(playersList);
+		for(int i = 0; i < diversList.size(); i++) {
+			diversList.get(i).setDepth(-1);
+			diversList.get(i).setStash(0);
+			diversList.get(i).setTreasures(0);
+		}
+		turn = playerNum - 1;  
+  }
   
   public static void resetOxygen(Oxygen o, Rectangle r, HBox b) {
 	  o.resetBar(r);

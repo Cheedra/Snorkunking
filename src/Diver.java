@@ -1,4 +1,3 @@
-
 import javafx.scene.image.ImageView;
 import javafx.geometry.Insets;
 import javafx.scene.layout.HBox;
@@ -55,37 +54,37 @@ public class Diver {
 		this.stash = stash;
 	}
 
-	public void moveUp(HBox[] list, int tour, VBox[] chests) {
+	public void moveUp(HBox[] list, int turn, VBox[] chests) {
 		int padding = ((height - playerHeight - 40) - (chests.length * chestHeight))/(chests.length - 1);
 		int amount = (playerHeight + padding + chestHeight) - playerHeight;
-		Insets current = list[tour].getPadding();
+		Insets current = list[turn].getPadding();
 		Insets next = new Insets(current.getTop()-amount, current.getRight(), current.getBottom(), current.getLeft());
-		list[tour].setPadding(next);
+		list[turn].setPadding(next);
 	}
 	
-	public void moveDown(HBox[] list, int tour, VBox[] chests) {
+	public void moveDown(HBox[] list, int turn, VBox[] chests) {
 		int padding = ((height - playerHeight - 40) - (chests.length * chestHeight))/(chests.length - 1);
 		int amount = padding + chestHeight;
-		Insets current = list[tour].getPadding();
+		Insets current = list[turn].getPadding();
 		//redo insets
 		Insets next = new Insets(current.getTop()+amount, current.getRight(), current.getBottom(), current.getLeft());
-		list[tour].setPadding(next);		
+		list[turn].setPadding(next);		
 	}
 
-	public void moveFirst(HBox[] list, int tour) {
+	public void moveFirst(HBox[] list, int turn) {
 		int amount = 20 + chestHeight;
-		Insets current = list[tour].getPadding();
+		Insets current = list[turn].getPadding();
 		//redo insets
 		Insets next = new Insets(current.getTop()+amount, current.getRight(), current.getBottom(), current.getLeft());
-		list[tour].setPadding(next);
+		list[turn].setPadding(next);
 	}
 	
-	public void moveLast(HBox[] list, int tour) {
+	public void moveLast(HBox[] list, int turn) {
 		int amount = 20 + chestHeight;
-		Insets current = list[tour].getPadding();
+		Insets current = list[turn].getPadding();
 		//redo insets
 		Insets next = new Insets(current.getTop()-amount, current.getRight(), current.getBottom(), current.getLeft());
-		list[tour].setPadding(next);
+		list[turn].setPadding(next);
 	}
 	
 	public void resetPos(HBox[] list) {
