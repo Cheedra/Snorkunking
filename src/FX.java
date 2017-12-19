@@ -4,6 +4,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.concurrent.ThreadLocalRandom;
 
+import javafx.animation.RotateTransition;
+import javafx.animation.ScaleTransition;
+import javafx.animation.TranslateTransition;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Group;
@@ -19,12 +22,14 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 public class FX extends Application{
     
 	static int playerNum = 4, cave0Num = 12, cave1Num = 6, cave2Num = 3;
     int turn = 0 ;
     static int chestNum = cave0Num + cave1Num + cave2Num;
+    static boolean transition;
 	
     private Stage stage;
     private ArrayList<Diver> diversList = new ArrayList<>();
@@ -57,13 +62,13 @@ public class FX extends Application{
 	HBox players = new HBox();
 
     for(int i = 0; i < playerNum; i++) {
-	    HBox diver = new HBox();
-	    Image img = new Image(this.getClass().getResourceAsStream("/images/diver"+i+".png"));
+	    HBox diver = newImageH("diver"+i, playerHeight);
+	    /*Image img = new Image(this.getClass().getResourceAsStream("/images/diver"+i+".png"));
 		ImageView iv = new ImageView(img);
 		iv.setFitHeight(playerHeight);
 		iv.setPreserveRatio(true);
 		diver.getChildren().clear();
-		diver.getChildren().add(iv);
+		diver.getChildren().add(iv);*/
 		diver.setPadding(new Insets(0,80,0,0));
 	    playersList[i]=diver;
 	  }
@@ -180,9 +185,10 @@ public class FX extends Application{
     
     //Key bindings
     setPlaying(playersList, diversList, diversList.get(turn));
+    //boolean transition;
     scene.setOnKeyPressed(ke -> {
     	//MOVE DOWN
-        if(ke.getCode() == KeyCode.DOWN){
+        if((ke.getCode() == KeyCode.DOWN) && (transition == false)){
         	//Set variables
         	Diver currentDiver = diversList.get(turn);
         	int id = currentDiver.getId();
@@ -190,71 +196,57 @@ public class FX extends Application{
         	int initialOxygen = ox.getLevel();
         	Stash currentStash = stashesList.get(id);
         	Score currentScore = scoresList.get(id);
-        	//CASE 1 : SURFACE
-        	if(currentDiver.getDepth() == -1) {
-        		//Close stash
-        		if(currentStash.isClosed() == false) {
-        			closeStash(currentStash, stashesBoxList);
-        			hideScore(currentScore, scoresBoxList);
+        	//Check oxygen available
+			if (checkOxygenMove(ox, currentDiver) == false){
+				//Reset
+        		resetAll(currentDiver, playersList, ox, bar, oxygen, chestsBoxList);
+        	}else{	
+        		//CASE 1 : SURFACE
+        		if(currentDiver.getDepth() == -1) {
+        			//Close stash
+        			if(currentStash.isClosed() == false) {
+        				closeStash(currentStash, stashesBoxList);
+        				hideScore(currentScore, scoresBoxList);
+        			}
+        			//Get distance
+        			int distance = getDistanceDown(currentDiver, chestsList);
+        			//Move
+        			firstMoveDown(currentDiver, playersList, chestsBoxList, distance);
+        			//Remove oxygen
+        			removeOxygenMove(currentDiver, ox, bar);
+        			//Check empty
+    				if(ox.isEmpty()) {
+    					resetAll(currentDiver, playersList, ox, bar, oxygen, chestsBoxList);
+    				}
+        		//CASE 2 : BOTTOM
+        		}else if(currentDiver.getDepth() == chestNum - 1) {
+        			//Do nothing
+        			turn--;
+        		//CASE 3 : WATER
+        		}else {
+        			//Get distance
+        			int distance = getDistanceDown(currentDiver, chestsList);
+        			//Move
+        			moveDown(currentDiver, playersList, chestsBoxList, distance);
+        			//Remove oxygen
+        			removeOxygenMove(currentDiver, ox, bar);
+        			//Check empty
+    				if(ox.isEmpty()) {
+    					resetAll(currentDiver, playersList, ox, bar, oxygen, chestsBoxList);
+    				}
         		}
-        		//Get distance
-        		int distance = getDistanceDown(currentDiver, chestsList);
-        		//Check oxygen available
-    			//If available
-    				//*Move
-    			//Else
-    				//Reset
-        		//*Move
-        		for(int i = 0; i < distance; i++) {
-        			if(i == 0) {
-        				firstMoveDown(currentDiver, playersList);
-            		}else {
-            			moveDown(currentDiver, playersList, chestsBoxList);
-            		}    				
-    			}
-        		//Remove oxygen
-        		removeOxygenMove(currentDiver, ox, bar);
-        		//Check oxygen reserve
-        		if (ox.isEmpty()){        		
-        			resetAll(currentDiver, playersList, ox, bar, oxygen, chestsBoxList);
-        		}
-        		
-        	//CASE 2 : BOTTOM
-        	}else if(currentDiver.getDepth() == chestNum - 1) {
-        		//Do nothing
-        		turn--;
-        	//CASE 3 : WATER
-        	}else {
-        		//Get distance
-        		int distance = getDistanceDown(currentDiver, chestsList);
-        		//Check oxygen available
-    			//If available
-    				//*Move
-    			//Else
-    				//Reset
-        		//*Move
-        		for(int i = 0; i < distance; i++) {
-        			moveDown(currentDiver, playersList, chestsBoxList);
-        		}
-        		//Remove oxygen
-        		removeOxygenMove(currentDiver, ox, bar);
-        		//Check oxygen reserves
-        		if (ox.isEmpty()){        		
-        			resetAll(currentDiver, playersList, ox, bar, oxygen, chestsBoxList);
-        		}
+        		//Set current player image
+        		setCurrentPlaying(playersList);
+        		System.out.println("Player "+(id+1));
+        		System.out.println("Action: Move Down");
+        		System.out.println("Initial depth: "+initialDepth+" / Final depth: "+currentDiver.getDepth()+" / Disance: "+(currentDiver.getDepth() - initialDepth));
+        		System.out.println("Treasures: "+currentDiver.getTreasures()+" / Chests: "+currentDiver.getStash());
+        		System.out.println("Oxygen consumed: " + (initialOxygen - ox.getLevel()) + " / Current Oxygen: "+ox.getLevel());
+        		System.out.println("------------------------------------------------------------------------------------------");
         	}
-        	//Set current player image
-        	setCurrentPlaying(playersList);
-        	System.out.println("Player "+(id+1));
-        	System.out.println("Action: Move Down");
-        	System.out.println("Initial depth: "+initialDepth+" / Final depth: "+currentDiver.getDepth()+" / Disance: "+(currentDiver.getDepth() - initialDepth));
-        	System.out.println("Treasures: "+currentDiver.getTreasures()+" / Chests: "+currentDiver.getStash());
-        	System.out.println("Oxygen consumed: " + (initialOxygen - ox.getLevel()) + " / Current Oxygen: "+ox.getLevel());
-        	System.out.println("------------------------------------------------------------------------------------------");
-        	
         }
         //MOVE UP
-        if(ke.getCode() == KeyCode.UP) {
+        if((ke.getCode() == KeyCode.UP) && (transition == false)) {
         	//Set variables
         	Diver currentDiver = diversList.get(turn);
         	int id = currentDiver.getId(); 
@@ -262,108 +254,106 @@ public class FX extends Application{
         	int initialOxygen = ox.getLevel();
         	Stash currentStash = stashesList.get(id);
         	Score currentScore = scoresList.get(id);  
-        	//CASE 1 : SURFACE
-        	if(currentDiver.getDepth() == -1) {
-        		//Do nothing
-        		turn--;  
-        	//CASE 2 : UNDER SURFACE
-        	}else if(currentDiver.getDepth() == 0){
-        		//Check oxygen available
-    			//If available
-    				//*Move
-    			//Else
-    				//Reset
-        		//*Move
-        		lastMoveUp(currentDiver, playersList);
-        		//Remove oxygen
-        		removeOxygenMove(currentDiver, ox, bar);
-        		//Check oxygen reserves
-        		if (ox.isEmpty()){        		
-        			resetAll(currentDiver, playersList, ox, bar, oxygen, chestsBoxList);
-        		}
-        		//Open stash
-        		setStash(currentDiver, currentStash, stashesBoxList);        		
-        		setScore(currentDiver, currentScore, scoresBoxList);    
-        	//CASE 3 : WATER
-        	}else {
-        		//Get distance
-        		int distance = getDistanceUp(currentDiver, chestsList);
-        		//Check oxygen available
-        			//If available
-        				//*Move
-        			//Else
-        				//Reset
-        		//*Move
-        		for(int i = 0; i < distance; i++) {
-        			if(currentDiver.getDepth() == 0) {
-        				lastMoveUp(currentDiver, playersList);
+        	//Check oxygen available
+			if (checkOxygenMove(ox, currentDiver) == false){
+				//Reset
+        		resetAll(currentDiver, playersList, ox, bar, oxygen, chestsBoxList);
+        	}else{	
+        		//CASE 1 : SURFACE
+        		if(currentDiver.getDepth() == -1) {
+        			//Do nothing
+        			turn--;  
+        		//CASE 2 : UNDER SURFACE
+        		}else if(currentDiver.getDepth() == 0){
+        			int distance = getDistanceUp(currentDiver, chestsList);
+        			//Move
+        			lastMoveUp(currentDiver, playersList, chestsBoxList, distance);
+        			//Remove oxygen
+        			removeOxygenMove(currentDiver, ox, bar);
+        			//Open stash
+        			setStash(currentDiver, currentStash, stashesBoxList);        		
+        			setScore(currentDiver, currentScore, scoresBoxList);  
+        			//Check empty
+    				if(ox.isEmpty()) {
+    					resetAll(currentDiver, playersList, ox, bar, oxygen, chestsBoxList);
+    				}
+        		//CASE 3 : WATER
+        		}else {
+        			//Get distance
+        			int distance = getDistanceUp(currentDiver, chestsList);
+        			if((distance != 1) && (distance == currentDiver.getDepth() + 1)) {
+        				lastMoveUp(currentDiver, playersList, chestsBoxList, distance);
         				//Open stash
-                		setStash(currentDiver, currentStash, stashesBoxList);        		
-                		setScore(currentDiver, currentScore, scoresBoxList);
-        			}else {
-        				moveUp(currentDiver, playersList, chestsBoxList);
-        			}	
+            			setStash(currentDiver, currentStash, stashesBoxList);        		
+            			setScore(currentDiver, currentScore, scoresBoxList);
+        			}
+        			else {
+        				moveUp(currentDiver, playersList, chestsBoxList, distance);
+        			}
+        			//Remove oxygen
+        			removeOxygenMove(currentDiver, ox, bar);
+        			//Check empty
+    				if(ox.isEmpty()) {
+    					transition = true;
+    					resetAll(currentDiver, playersList, ox, bar, oxygen, chestsBoxList);
+    					transition = false;
+    				}
         		}
-        		//Remove oxygen
-        		removeOxygenMove(currentDiver, ox, bar);
-        		//Check oxygen reserves
-        		if (ox.isEmpty()){        		
-        			resetAll(currentDiver, playersList, ox, bar, oxygen, chestsBoxList);
-        		}
+        		//Set current player image
+        		setCurrentPlaying(playersList);
+        		System.out.println("Player "+(id+1));
+        		System.out.println("Action: Move Up");
+        		System.out.println("Initial depth: "+initialDepth+" / Final depth: "+currentDiver.getDepth()+" / Distance: "+(initialDepth - currentDiver.getDepth()));
+        		System.out.println("Treasures: "+currentDiver.getTreasures()+" / Chests: "+currentDiver.getStash());
+        		System.out.println("Oxygen consumed: " + (initialOxygen - ox.getLevel()) + " / Current Oxygen: "+ox.getLevel());
+        		System.out.println("------------------------------------------------------------------------------------------");
         	}
-        	//Set current player image
-        	setCurrentPlaying(playersList);
-        	System.out.println("Player "+(id+1));
-        	System.out.println("Action: Move Up");
-        	System.out.println("Initial depth: "+initialDepth+" / Final depth: "+currentDiver.getDepth()+" / Disance: "+(initialDepth - currentDiver.getDepth()));
-        	System.out.println("Treasures: "+currentDiver.getTreasures()+" / Chests: "+currentDiver.getStash());
-        	System.out.println("Oxygen consumed: " + (initialOxygen - ox.getLevel()) + " / Current Oxygen: "+ox.getLevel());
-        	System.out.println("------------------------------------------------------------------------------------------");
         }
         //OPEN CHEST
-        if((ke.getCode() == KeyCode.LEFT) || (ke.getCode() == KeyCode.RIGHT)) {
+        if((ke.getCode() == KeyCode.LEFT) || (ke.getCode() == KeyCode.RIGHT) && (transition == false)) {
         	//Set variables
         	Diver currentDiver = diversList.get(turn);
         	int depth = currentDiver.getDepth();
         	int initialOxygen = ox.getLevel();
         	int initialTreasures = currentDiver.getTreasures(), initialStash = currentDiver.getStash();
-        	//CASE 1 : SURFACE
-        	if(depth == -1) {
-        		//Do nothing
-        		turn --;
-        	//CASE 2 : WATER
-        	}else {
-        		Chest currentChest = chestsList.get(depth);
-        		//If chest is closed
-        		if(currentChest.isClosed()) {
-        			//Check oxygen available
-        			//If available
-        				//*Open chest
-        			//Else
-        				//Reset
-        			//*Open chest
-        			openChest(currentChest, currentDiver, chestsBoxList, bar ,ox);
-        			//Remove oxygen
-        			removeOxygenChest(ox, bar);
-        			//Check oxygen reserves
-        			if (ox.isEmpty()){
-        				resetAll(currentDiver, playersList, ox, bar, oxygen, chestsBoxList);
-            		}
-        		//If chest is open
-        		}else {
+        	//Check oxygen available
+			if (checkOxygenMove(ox, currentDiver) == false){
+				//Reset
+        		resetAll(currentDiver, playersList, ox, bar, oxygen, chestsBoxList);
+        	}else{	
+        		//CASE 1 : SURFACE
+        		if(depth == -1) {
         			//Do nothing
-        			turn--;
+        			turn --;
+        		//CASE 2 : WATER
+        		}else {
+        			Chest currentChest = chestsList.get(depth);
+        			//If chest is closed
+        			if(currentChest.isClosed()) {
+        				//Open chest
+        				openChest(currentChest, currentDiver, chestsBoxList, bar ,ox);
+        				//Remove oxygen
+        				removeOxygenChest(ox, bar);
+        				//Check empty
+        				if(ox.isEmpty()) {
+        					resetAll(currentDiver, playersList, ox, bar, oxygen, chestsBoxList);
+        				}
+        			//If chest is open
+        			}else {
+        				//Do nothing
+        				turn--;
+        			}
         		}
+        		//Set current player image
+        		setCurrentPlaying(playersList);
+        		System.out.println("Player "+(currentDiver.getId()+1));
+        		System.out.println("Action: Open Chest");
+        		System.out.println("Depth: "+depth);
+        		System.out.println("Initial Treasures: "+initialTreasures+" / Current Treasures: "+currentDiver.getTreasures()+" / Initial Chests: "+initialStash+" / Current Chests: "+currentDiver.getStash());
+        		System.out.println("Oxygen consumed: " + (initialOxygen - ox.getLevel()) + " / Current Oxygen: "+ox.getLevel());
+        		System.out.println("------------------------------------------------------------------------------------------");
         	}
-        	//Set current player image
-        	setCurrentPlaying(playersList);
-        	System.out.println("Player "+(currentDiver.getId()+1));
-        	System.out.println("Action: Open Chest");
-        	System.out.println("Depth: "+depth);
-        	System.out.println("Initial Treasures: "+initialTreasures+" / Current Treasures: "+currentDiver.getTreasures()+" / Initial Chests: "+initialStash+" / Current Chests: "+currentDiver.getStash());
-        	System.out.println("Oxygen consumed: " + (initialOxygen - ox.getLevel()) + " / Current Oxygen: "+ox.getLevel());
-        	System.out.println("------------------------------------------------------------------------------------------");
-        }  
+        }
     });
     this.stage.setScene(scene);
     this.stage.show();
@@ -372,14 +362,14 @@ public class FX extends Application{
   //Set scene
   
   public HBox setBackground() {
-	  HBox background = new HBox();
-	  Image backImg = new Image(this.getClass().getResourceAsStream("/images/fullbacko2.png"));
+	  HBox background = newImageW("fullbacko2", 700);
+	  /*Image backImg = new Image(this.getClass().getResourceAsStream("/images/fullbacko2.png"));
 	  ImageView backIv = new ImageView(backImg);
 	  int width = 700;
 	  backIv.setFitWidth(width);
 	  backIv.setPreserveRatio(true);
 	  background.getChildren().clear();
-	  background.getChildren().add(backIv);
+	  background.getChildren().add(backIv);*/
 	  background.setPadding(new Insets(0,0,0,0));
 	  return background;
   }
@@ -396,9 +386,9 @@ public class FX extends Application{
   		turn++;
   	}
   	else{
-  		turn=0;
-			sortList();
-			setPlaying(playersList, diversList, diversList.get(turn));
+  		turn=0;  		
+		sortList();
+		setPlaying(playersList, diversList, diversList.get(turn));
   	}
   }
   
@@ -425,6 +415,8 @@ public class FX extends Application{
 		diver.getChildren().add(iv);
 		//diver.setPadding(new Insets(0,80,0,0));
 		list[id].getChildren().add(diver);
+	
+
 	}
   
   public void sortList() {
@@ -506,6 +498,28 @@ public class FX extends Application{
 	  return list[n];
   }
   
+  public HBox newImageW(String name, int width) {
+	  HBox box = new HBox();
+	  Image img = new Image(this.getClass().getResourceAsStream("/images/"+name+".png"));
+	  ImageView iv = new ImageView(img);
+	  iv.setPreserveRatio(true);
+	  iv.setFitWidth(width);
+	  box.getChildren().clear();
+	  box.getChildren().add(iv);
+	  return box;
+  }
+  
+  public HBox newImageH(String name, int height) {
+	  HBox box = new HBox();
+	  Image img = new Image(this.getClass().getResourceAsStream("/images/"+name+".png"));
+	  ImageView iv = new ImageView(img);
+	  iv.setPreserveRatio(true);
+	  iv.setFitHeight(height);
+	  box.getChildren().clear();
+	  box.getChildren().add(iv);
+	  return box;
+  }
+  
   //Actions
   
   public void openChest(Chest c, Diver d, VBox[] l, Rectangle r, Oxygen o) {
@@ -547,40 +561,68 @@ public class FX extends Application{
 		  distance++;
 		  i++;
 	  }
+	  System.out.println("Distance : "+distance);
 	  return distance;
   }
   
   public static int getDistanceUp(Diver d, ArrayList<Chest> c) {
 	  int distance = 1, i = d.getDepth();
-	  while((c.get(i-1).isHidden()) && (i > 1)) {
-		  i--;
-		  distance++;
+	  System.out.println("|~Get distance UP~|");
+	  if(i > 0) {
+		  while((i > 0) && (c.get(i-1).isHidden())) {
+			  i--;
+			  distance++;
+		  }
+		  if(distance != 1) {
+			  if(d.getDepth() == distance) {
+				  distance++;
+			  }
+		  }
 	  }
-	  if(d.getDepth() == distance) {
-		  distance++;
-	  }
+	  System.out.println("Distance : "+distance);
 	  return distance;
   }
   
-  public static void moveDown(Diver d, HBox[] p, VBox[] c) {
-	  d.moveDown(p, d.getId(), c);
-	  d.setDepth(d.getDepth()+1);
+  public static void moveDown(Diver d, HBox[] p, VBox[] c, int i) {
+	  d.moveDown(p, d.getId(), c, i);
+	  d.setDepth(d.getDepth()+i);
 }
   
-  public static void moveUp(Diver d, HBox[] p, VBox[] c) {
-	  d.moveUp(p, d.getId(), c);
-	  d.setDepth(d.getDepth()-1);
+  public static void moveUp(Diver d, HBox[] p, VBox[] c, int i) {
+	  d.moveUp(p, d.getId(), c, i);
+	  d.setDepth(d.getDepth()-i);
   }
   
-  public static void firstMoveDown(Diver d, HBox[] l) {
-	  d.moveFirst(l, d.getId());
-		d.setDepth(d.getDepth()+1);
+  public static void firstMoveDown(Diver d, HBox[] l, VBox[] c, int distance) {
+	  d.moveFirst(l, c, distance);
+		d.setDepth(d.getDepth()+distance);
   }
   
-  public static void lastMoveUp(Diver d, HBox[] b) {
-	  d.moveLast(b,d.getId());
-	  d.setDepth(d.getDepth()-1);
+  public void lastMoveUp(Diver d, HBox[] l, VBox[] c, int distance) {
+	  d.moveLast(l, c, distance);
+	  d.setDepth(-1);
 	  d.setStash(0);
+  }
+  
+  public boolean checkOxygenMove(Oxygen o, Diver d) {
+	  int level = o.getLevel();
+	  int stash = d.getStash();
+	  int amount = 1 + stash;
+	  if(amount < level) {
+		  return true;
+	  }else {
+		  return false;
+	  }
+  }
+  
+  public boolean checkOxygenChest(Oxygen o) {
+	  int level = o.getLevel();
+	  int amount = 1;
+	  if(amount < level) {
+		  return true;
+	  }else {
+		  return false;
+	  }
   }
   
   public static void removeOxygenMove(Diver d, Oxygen o, Rectangle r) {
@@ -596,22 +638,39 @@ public class FX extends Application{
   //Reset scene
 
   public void resetAll(Diver currentDiver, HBox[] playersList, Oxygen ox, Rectangle bar, HBox oxygen, VBox[] chestsBoxList) {
-	//reset players	
-		resetPlayers(currentDiver, playersList);    			
+	  	resetPlayersList();
+		//reset players	
+		resetPlayers(currentDiver, playersList, chestsBoxList);    			
 		//reset oxygen        			
 		resetOxygen(ox, bar, oxygen);        			
 		//reset chests        			
 		resetChests(chestsBoxList, chestsList);
   }
   
-  public void resetPlayers(Diver currentDiver, HBox[] playersList) {
-	  currentDiver.resetPos(playersList);
+  public void resetPlayersList() {
+	  ArrayList<Diver> newList = new ArrayList<Diver>();
+	  for(int j = 0; j < diversList.size(); j++) {
+		  for(int i = 0; i < diversList.size(); i++) {
+			  Diver d = diversList.get(i);
+			  if(d.getId() == j) {
+				  newList.add(d);
+			  }
+		  }
+	  }
+	  diversList = newList;
+  }
+  
+  public void resetPlayers(Diver currentDiver, HBox[] playersList, VBox[] chestsList) {
+	  currentDiver.resetPos(playersList, chestsList, diversList);
 		for(int i = 0; i < diversList.size(); i++) {
 			diversList.get(i).setDepth(-1);
 			diversList.get(i).setStash(0);
 			diversList.get(i).setTreasures(0);
 		}
-		turn = playerNum - 1;  
+		
+		turn = playerNum -1; 
+		setCurrentPlaying(playersList);
+		
   }
   
   public static void resetOxygen(Oxygen o, Rectangle r, HBox b) {

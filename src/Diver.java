@@ -1,7 +1,12 @@
 import javafx.scene.image.ImageView;
+
+import java.util.ArrayList;
+
+import javafx.animation.TranslateTransition;
 import javafx.geometry.Insets;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 
 public class Diver {
 
@@ -54,43 +59,87 @@ public class Diver {
 		this.stash = stash;
 	}
 
-	public void moveUp(HBox[] list, int turn, VBox[] chests) {
+	public int getAmount(VBox[] chests) {
 		int padding = ((height - playerHeight - 40) - (chests.length * chestHeight))/(chests.length - 1);
 		int amount = (playerHeight + padding + chestHeight) - playerHeight;
-		Insets current = list[turn].getPadding();
-		Insets next = new Insets(current.getTop()-amount, current.getRight(), current.getBottom(), current.getLeft());
-		list[turn].setPadding(next);
+		return amount;
 	}
 	
-	public void moveDown(HBox[] list, int turn, VBox[] chests) {
-		int padding = ((height - playerHeight - 40) - (chests.length * chestHeight))/(chests.length - 1);
-		int amount = padding + chestHeight;
-		Insets current = list[turn].getPadding();
+	public void moveUp(HBox[] list, int turn, VBox[] chests, int distance) {
+		int amount = distance * getAmount(chests);
+		/*Insets current = list[turn].getPadding();
+		Insets next = new Insets(current.getTop()-amount, current.getRight(), current.getBottom(), current.getLeft());
+		list[turn].setPadding(next);*/
+		TranslateTransition anim = new TranslateTransition();
+		anim.setDuration(Duration.millis(100)); 
+		anim.setNode(list[turn]);
+		anim.setByY(-amount);	
+		anim.play();
+	}
+	
+	public void moveDown(HBox[] list, int turn, VBox[] chests, int distance) {
+		int amount = distance * getAmount(chests);
+		/*Insets current = list[turn].getPadding();
 		//redo insets
 		Insets next = new Insets(current.getTop()+amount, current.getRight(), current.getBottom(), current.getLeft());
-		list[turn].setPadding(next);		
+		list[turn].setPadding(next);*/
+		TranslateTransition anim = new TranslateTransition();
+		anim.setDuration(Duration.millis(100)); 
+		anim.setNode(list[turn]);
+		anim.setByY(amount);	
+		anim.play();
 	}
 
-	public void moveFirst(HBox[] list, int turn) {
-		int amount = 20 + chestHeight;
-		Insets current = list[turn].getPadding();
+	public void moveFirst(HBox[] list, VBox[] chests, int distance) {
+		int first = 20 + chestHeight;
+		int amount = first;
+		if(distance > 1) {
+			amount = first + ((distance - 1) * getAmount(chests));
+		}
+		/*Insets current = list[turn].getPadding();
 		//redo insets
 		Insets next = new Insets(current.getTop()+amount, current.getRight(), current.getBottom(), current.getLeft());
-		list[turn].setPadding(next);
+		list[turn].setPadding(next);*/
+		TranslateTransition anim = new TranslateTransition();
+		anim.setDuration(Duration.millis(100)); 
+		anim.setNode(list[id]);
+		anim.setByY(amount);	
+		anim.play();
 	}
 	
-	public void moveLast(HBox[] list, int turn) {
-		int amount = 20 + chestHeight;
-		Insets current = list[turn].getPadding();
+	public void moveLast(HBox[] list, VBox[] chests, int distance) {
+		int first = 20 + chestHeight;
+		int amount = first;
+		if(distance > 1) {
+			amount = first + ((distance - 1) * getAmount(chests));
+		}
+		/*Insets current = list[turn].getPadding();
 		//redo insets
 		Insets next = new Insets(current.getTop()-amount, current.getRight(), current.getBottom(), current.getLeft());
-		list[turn].setPadding(next);
+		list[turn].setPadding(next);*/
+		TranslateTransition anim = new TranslateTransition();
+		anim.setDuration(Duration.millis(100)); 
+		anim.setNode(list[id]);
+		anim.setByY(-amount);	
+		anim.play();
 	}
 	
-	public void resetPos(HBox[] list) {
+	public void resetPos(HBox[] list, VBox[] chests, ArrayList<Diver> players) {
 		for(int i = 0; i < list.length; i++) {
-			Insets ini = new Insets(0,80,0,0);
-			list[i].setPadding(ini);
+			/*Insets ini = new Insets(0,80,0,0);
+			list[i].setPadding(ini);*/
+			int depth = players.get(i).getDepth();
+			int lastAmount = 20 + chestHeight;
+			int amount = depth * getAmount(chests) ;
+			if(depth == -1) {
+				amount = 0;
+				lastAmount = 0;
+			}
+			TranslateTransition anim = new TranslateTransition();
+			anim.setDuration(Duration.millis(100)); 
+			anim.setNode(list[i]);
+			anim.setByY(- amount - lastAmount);	
+			anim.play();
 		}
 	}
 }
