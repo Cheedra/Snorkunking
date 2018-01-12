@@ -1,9 +1,5 @@
 import javafx.geometry.Insets;
 import javafx.scene.layout.HBox;
-import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
-import javafx.scene.text.Font;
-import javafx.scene.text.Text;
 
 public class Score {
 
@@ -36,21 +32,6 @@ public class Score {
 	
 	public void setId(int id) {
 		this.id = id;
-	}
-	
-	public void setText(HBox[] l, int i) {
-		Paint[] list = new Paint[4];
-		  list[0] = Color.BLUE;
-		  list[1] = Color.CRIMSON;
-		  list[2] = Color.GREEN;
-		  list[3] = Color.YELLOW;
-		Text txt = new Text("" + this.getValue() + "");
-		txt.setFill(list[this.getId()]);
-		txt.setStroke(Color.BLACK);
-    	txt.setStrokeWidth(0.5);
-    	txt.setFont(Font.font(18));
-		l[i].getChildren().clear();
-		l[i].getChildren().add(txt);
 	}
 	
 	public void hideText(HBox[] l, int i) {

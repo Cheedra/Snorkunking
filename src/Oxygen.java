@@ -1,7 +1,9 @@
+import javafx.animation.FadeTransition;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
-import javafx.scene.shape.Rectangle;
+import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 
 public class Oxygen {
 
@@ -43,20 +45,29 @@ public class Oxygen {
 		this.stock=i;
 	}
 	
-	public void removeOxygen(Rectangle r, int i) {
-		int height = 500;
-		int amount = height / this.total;
-		int remove = (i * amount) + amount;
-		r.setHeight(r.getHeight() - remove);
-		r.setY(r.getY() + remove);
+	public void removeOxygen(VBox[] r, int n) {
+		for(int i = 0; i < r.length; i++) {
+			if((i  >= this.level) && (i < this.level + n)){
+				FadeTransition ft = new FadeTransition(Duration.millis(1000));
+				ft.setFromValue(1.0);
+				ft.setToValue(0.0);
+				ft.setNode(r[i]);
+				ft.play();
+			}
+		}
 		if(this.level <= 0) {
 			this.setEmpty(true);
 		}
 	}
 	
-	public void resetBar(Rectangle r) {
-		r.setHeight(500);
-		r.setY(95);
+	public void resetBar(VBox[] r) {
+		for(int i = 1; i < r.length; i++) {			
+			FadeTransition ft = new FadeTransition(Duration.millis(1000));
+			ft.setFromValue(0.0);
+			ft.setToValue(1.0);
+			ft.setNode(r[i]);
+			ft.play();
+		}
 	}
 	
 	public void resetStock(HBox b) {

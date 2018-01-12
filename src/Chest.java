@@ -4,8 +4,8 @@ import javafx.scene.layout.VBox;
 
 public class Chest {
 
-	private int cave, treasures, id;
-	private boolean closed = true, hidden = false;
+	private int cave, treasures, id, bottomId;
+	private boolean closed = true, hidden = false, bottom = false;
 	
 	Chest(int c, int t, int id){
 		this.cave=c;
@@ -42,12 +42,28 @@ public class Chest {
 	}
 
 
+	public int getBottomId() {
+		return bottomId;
+	}
+
+	public void setBottomId(int bottomId) {
+		this.bottomId = bottomId;
+	}
+
 	public boolean isHidden() {
 		return hidden;
 	}
 
 	public void setHidden(boolean hidden) {
 		this.hidden = hidden;
+	}
+
+	public boolean isBottom() {
+		return bottom;
+	}
+
+	public void setBottom(boolean bottom) {
+		this.bottom = bottom;
 	}
 
 	public void openChest(VBox[] list, int i) {
