@@ -2,6 +2,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.concurrent.ThreadLocalRandom;
+import javafx.util.Duration;
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Group;
@@ -59,14 +63,53 @@ public class FX extends Application{
 	  Text title = new Text("SNORKUNKING");
 	  title.setFill(Color.DARKBLUE);
 	  title.setStroke(Color.BLACK);
-	  title.setStrokeWidth(3);
+	  title.setStrokeWidth(7);
+	  title.setScaleY(1.2);
+	  title.setStrokeType(null);
 	  title.setFont(Font.font("Riffic Free Medium", 80));
-	  title.setX(80);
-	  title.setY(200);
+	  title.setX(75);
+	  title.setY(150);
+	  
+	  //Set start button
+	  
+	  Image img = new Image(this.getClass().getResourceAsStream("/images/start.png"));
+	  ImageView start = new ImageView(img);
+	  start.setFitWidth(100);
+	  start.setPreserveRatio(true);
+	  start.setX(300);
+	  start.setY(600);
+	  start.setOnMouseEntered(ke -> {
+		  //Hover image
+		  Image startImg = new Image(this.getClass().getResourceAsStream("/images/start_selected.png"));
+		  start.setImage(startImg);
+		  });
+	  start.setOnMouseExited(ke -> {
+		  Image startImg2 = new Image(this.getClass().getResourceAsStream("/images/start.png"));
+		  start.setImage(startImg2);
+		  });
+	  start.setOnMousePressed(ke -> {
+		  //Return
+		  startScene();
+		  });
+	   
+	  //Set message
+	  Text message = new Text("PRESS ENTER TO PLAY");
+	  message.setFill(Color.SKYBLUE);
+	  message.setStroke(Color.DARKBLUE);
+	  message.setStrokeWidth(5);
+	  message.setStrokeType(null);
+	  message.setFont(Font.font("Riffic Free Medium",20));
+	  message.setX(250);
+	  message.setY(500);
+	  Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(1), evt -> message.setVisible(false)),
+              new KeyFrame(Duration.seconds( 0.2), evt -> message.setVisible(true)));
+	  timeline.setCycleCount(Animation.INDEFINITE);
+	  timeline.play();
+
 	  
 	  //Set scene
 	  Group root = new Group();
-	  root.getChildren().addAll(background, title);
+	  root.getChildren().addAll(background,title,start,message);
 	  Scene scene = new Scene(root, 700, height);	  
 	  scene.setOnKeyPressed(ke -> {
 		  //START
@@ -199,7 +242,16 @@ public class FX extends Application{
 		  //ENTER
 		  if(ke.getCode() == KeyCode.ENTER) {
 			  int id = getIdSelected();
-			  if(id == 4) {
+			  Button button = buttonsList.get(id);
+			  if(id<4) {
+					  Button nextButton = buttonsList.get(id + 1);
+					  //update selected
+					  button.setSelected(false);
+					  nextButton.setSelected(true);
+					  //update image
+					  button.unlight(playersList, id, start);
+					  nextButton.light(playersList, id + 1, start); 
+			  }else if(id == 4) {
 				  playerNum = getPlayerNum();
 				  if(playerNum != 0) {
 					  gameScene();  
@@ -589,15 +641,16 @@ public class FX extends Application{
 	  //Set background	  
 	  HBox background = setBackground("waterback");
 	  
-	  //Set victory text
+	//Set victory text
 	  Text txt = new Text();
 	  txt.setText(getVictory());
 	  txt.setFill(Color.CRIMSON);
 	  txt.setStroke(Color.BLACK);
-	  txt.setStrokeWidth(0.5);
-	  txt.setFont(Font.font(18));
-	  txt.setX(100);
-	  txt.setY(100);
+	  txt.setStrokeWidth(7);
+	  txt.setStrokeType(null);
+	  txt.setFont(Font.font("Riffic Free Medium", 40));
+	  txt.setX(150);
+	  txt.setY(300);
 	  
 	  //Set restart button
 	  
@@ -625,7 +678,6 @@ public class FX extends Application{
 	  Group root = new Group();
 	  root.getChildren().addAll(background, txt, restart);
 	  Scene scene = new Scene(root, 700, height);
-	  
 	  this.stage.setScene(scene);
 	  this.stage.show();
   }
@@ -843,12 +895,18 @@ public class FX extends Application{
 	  for(int i = 0; i < diversList.size(); i++) {
 		  list.add(diversList.get(i).getStash());
 	  }
-	  int max = list.get(0);
+	  int max = list.get(0), maxNum = 1;
 	  for(int i = 1; i < list.size(); i++) {
 		  if(list.get(i) > max) {
-			  
+			  max = list.get(i);
 		  }
 	  }
+	  for(int i = 0; i < list.size(); i++) {
+		  if(list.get(i) == max) {
+			  maxNum++;
+		  }
+	  }
+	  
 	  /*int max = 0, num = 1;
 	  int maxNum = 1;
 	  int[] id = new int[4];
