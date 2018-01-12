@@ -59,14 +59,14 @@ public class FX extends Application{
 	  Text title = new Text("SNORKUNKING");
 	  title.setFill(Color.DARKBLUE);
 	  title.setStroke(Color.BLACK);
-	  title.setStrokeWidth(0.5);
-	  title.setFont(Font.font("Riffic Free", 18));
-	  title.setX(100);
-	  title.setY(100);
+	  title.setStrokeWidth(3);
+	  title.setFont(Font.font("Riffic Free Medium", 80));
+	  title.setX(80);
+	  title.setY(200);
 	  
 	  //Set scene
 	  Group root = new Group();
-	  root.getChildren().addAll(background);
+	  root.getChildren().addAll(background, title);
 	  Scene scene = new Scene(root, 700, height);	  
 	  scene.setOnKeyPressed(ke -> {
 		  //START
@@ -201,7 +201,9 @@ public class FX extends Application{
 			  int id = getIdSelected();
 			  if(id == 4) {
 				  playerNum = getPlayerNum();
-				  gameScene();
+				  if(playerNum != 0) {
+					  gameScene();  
+				  }
 			  }
 		  }
 	  });
@@ -303,7 +305,7 @@ public class FX extends Application{
     Image oxygenImg = new Image(this.getClass().getResourceAsStream("/images/oxygen" + ox.getStock() + ".png"));
     ImageView oxygenIv = new ImageView(oxygenImg);    
     oxygen.getChildren().add(oxygenIv);
-    oxygen.setPadding(new Insets(0, 0, 0, 50));
+    oxygen.setPadding(new Insets(0, 0, 0, 600));
     
     	//Oxygen frame
     HBox oxFrame = new HBox();
@@ -362,7 +364,7 @@ public class FX extends Application{
     ImageView cross = new ImageView(crossImg);
     cross.setFitWidth(45);
     cross.setPreserveRatio(true);
-    cross.setX(650);
+    cross.setX(10);
     cross.setY(10);
     cross.setOnMouseEntered(ke -> {
     	//Hover image
@@ -744,7 +746,11 @@ public class FX extends Application{
 					   return -1;
 				   }
 				   else{
-					   return 0;
+					   if ((int) (0.5 + Math.random()) == 1) {
+						   return -1;
+					   } else {
+						   return 1;
+					   }
 				   }
 			     }
 			 }); 
@@ -756,7 +762,7 @@ public class FX extends Application{
 		  int t1 = ThreadLocalRandom.current().nextInt(5, 9);
 		  int t2 = ThreadLocalRandom.current().nextInt(10, 13);
 		  int c = 0;		  
-		  if(i < cave0Num) {			  
+		  if(i < cave0Num) {
 			  chestsList.add(new Chest(c, t0, i+1));
 		  }
 		  if((cave0Num <= i) && (i < cave0Num + cave1Num)) {
@@ -833,7 +839,17 @@ public class FX extends Application{
   
   public String getVictory() {
 	  String s = "Victoire ";
-	  int max = 0, num = 1;
+	  ArrayList<Integer> list = new ArrayList<>();
+	  for(int i = 0; i < diversList.size(); i++) {
+		  list.add(diversList.get(i).getStash());
+	  }
+	  int max = list.get(0);
+	  for(int i = 1; i < list.size(); i++) {
+		  if(list.get(i) > max) {
+			  
+		  }
+	  }
+	  /*int max = 0, num = 1;
 	  int maxNum = 1;
 	  int[] id = new int[4];
 	  for(int i = 0; i < diversList.size(); i++) {
@@ -856,7 +872,7 @@ public class FX extends Application{
 		  for(int i = 0; i < num; i++) {
 			  s = s + id[i]+" ";
 		  }
-	  }
+	  }*/
 	  return s;
   }
   
