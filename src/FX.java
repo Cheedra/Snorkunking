@@ -102,7 +102,7 @@ public class FX extends Application{
 	  message.setX(250);
 	  message.setY(500);
 	  Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(1), evt -> message.setVisible(false)),
-              new KeyFrame(Duration.seconds( 0.2), evt -> message.setVisible(true)));
+			  new KeyFrame(Duration.seconds( 0.2), evt -> message.setVisible(true)));
 	  timeline.setCycleCount(Animation.INDEFINITE);
 	  timeline.play();
 
@@ -644,13 +644,33 @@ public class FX extends Application{
 	//Set victory text
 	  Text txt = new Text();
 	  txt.setText(getVictory());
-	  txt.setFill(Color.CRIMSON);
-	  txt.setStroke(Color.BLACK);
+	  txt.setFill(Color.SKYBLUE);
+	  txt.setStroke(Color.DARKBLUE);
 	  txt.setStrokeWidth(7);
 	  txt.setStrokeType(null);
 	  txt.setFont(Font.font("Riffic Free Medium", 40));
-	  txt.setX(150);
-	  txt.setY(300);
+	  txt.setX(130);
+	  txt.setY(250);
+	  
+	  //Set scores
+	  VBox scores = new VBox();
+	  VBox[] scoresBoxList = new VBox[playerNum];
+	  
+	  for(int i = 0; i < playerNum; i++) {
+		  VBox textBox = new VBox();
+		  Text scoreText = new Text();
+		  scoreText.setText("Player "+(i+1)+" score: "+scoresList.get(i).getValue());
+		  scoreText.setFill(Color.SKYBLUE);
+		  scoreText.setStroke(Color.DARKBLUE);
+		  scoreText.setStrokeWidth(3);
+		  scoreText.setStrokeType(null);
+		  scoreText.setFont(Font.font("Riffic Free Medium", 18));
+		  textBox.getChildren().add(scoreText);
+		  textBox.setPadding(new Insets(0,0,30,0));
+		  scoresBoxList[i] = textBox;
+	  }
+	  scores.getChildren().addAll(scoresBoxList);
+	  scores.setPadding(new Insets(330,0,0,270));
 	  
 	  //Set restart button
 	  
@@ -676,7 +696,7 @@ public class FX extends Application{
 	  
 	  //Set scene
 	  Group root = new Group();
-	  root.getChildren().addAll(background, txt, restart);
+	  root.getChildren().addAll(background, txt, scores, restart);
 	  Scene scene = new Scene(root, 700, height);
 	  this.stage.setScene(scene);
 	  this.stage.show();
@@ -753,11 +773,17 @@ public class FX extends Application{
 	  if(turn < playerNum -1) {
   		setPlaying(playersList, diversList.get(turn+1));
   		turn++;
+  		//if IA
+  		////do things
+  		////setCurrentPlaying
   	}
   	else{
   		turn=0;  		
 		sortList();
 		setPlaying(playersList, diversList.get(turn));
+		//if IA
+  		////do things
+  		////setCurrentPlaying
   	}
   }
   
@@ -891,46 +917,31 @@ public class FX extends Application{
   
   public String getVictory() {
 	  String s = "Victoire ";
-	  ArrayList<Integer> list = new ArrayList<>();
-	  for(int i = 0; i < diversList.size(); i++) {
-		  list.add(diversList.get(i).getStash());
+	  ArrayList<Integer> list = new ArrayList<>(), maxList = new ArrayList<>();
+	  for(int i = 0; i < stashesList.size(); i++) {
+		  list.add(stashesList.get(i).getAmount());
 	  }
-	  int max = list.get(0), maxNum = 1;
+	  int max = 0, maxNum = 1;
 	  for(int i = 1; i < list.size(); i++) {
-		  if(list.get(i) > max) {
-			  max = list.get(i);
+		  if(list.get(i) > list.get(max)) {
+			  max = i;
 		  }
 	  }
+	  maxList.add(max);
 	  for(int i = 0; i < list.size(); i++) {
-		  if(list.get(i) == max) {
+		  if((list.get(i) == list.get(max)) && (i != max)) {
 			  maxNum++;
+			  maxList.add(i);
 		  }
 	  }
-	  
-	  /*int max = 0, num = 1;
-	  int maxNum = 1;
-	  int[] id = new int[4];
-	  for(int i = 0; i < diversList.size(); i++) {
-		  if(diversList.get(i).getStash() > max) {
-			  max = diversList.get(i).getStash();
-			  id[0] = diversList.get(i).getId()+1;
+	  if(maxNum > 1) {
+		  s += " des joueurs";
+		  for(int i = 0; i < maxList.size(); i++) {
+			  s+=" "+(maxList.get(i)+1);
 		  }
-	  }
-	  for(int i = 0; i < diversList.size(); i++) {
-		  if((diversList.get(i).getStash() == max) && (diversList.get(i).getId() != id[0]-1)) {
-			  maxNum ++;
-			  id[num] = diversList.get(i).getId()+1;
-			  num++;
-		  }
-	  }
-	  if(maxNum == 1) {
-		  s = s+"du joueur "+id[0];  
 	  }else {
-		  s = s+"des joueurs ";
-		  for(int i = 0; i < num; i++) {
-			  s = s + id[i]+" ";
-		  }
-	  }*/
+		  s+=" du joueur "+(max+1);
+	  }
 	  return s;
   }
   
@@ -1218,6 +1229,12 @@ public class FX extends Application{
 	  stashesList.clear();
 	  //Reset scores	
 	  scoresList.clear();
+  }
+  
+  //IA
+  
+  public void ia() {
+	  
   }
   
   //Main
