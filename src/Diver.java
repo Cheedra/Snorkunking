@@ -81,17 +81,6 @@ public class Diver {
 		return amount;
 	}
 	
-	//Start scene
-
-	
-	/*public void moveLeft(VBox[] list, int turn) {
-		TranslateTransition anim = new TranslateTransition();
-		anim.setDuration(Duration.millis(100)); 
-		anim.setNode(list[turn]);
-		anim.setByX(-100);	
-		anim.play();
-	}*/
-	
 	//Game scene
 	
 	public void moveUp(HBox[] list, int turn, VBox[] chests, int distance) {
